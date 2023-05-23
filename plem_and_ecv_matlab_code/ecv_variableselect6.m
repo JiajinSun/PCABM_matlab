@@ -6,25 +6,25 @@ delete(gcp('nocreate'))
 % tic, fprintf('%-40s','Setting up the model ...')
 n = 500;
 K = 2;    % number of communities
-oir = 0.5;    % "O"ut-"I"n-"R"atio 
+oir = 0.5;    % "O"ut-"I"n-"R"atio. oir = 0.5 means $\bar B$ has diagonal = 2, off-diagonal = 1.
 
-compErr = @(c,e) compMuI(compCM(c,e,K));    % use mutual info as a measure of error/sim.
-compErr2 = @(c,e) compARI(compCM(c,e,K));
+compErr = @(c,e) compMuI(compCM(c,e,K));    % calculate mutual info as a measure of error/sim.
+compErr2 = @(c,e) compARI(compCM(c,e,K));    % calculate adjusted rand index as a measure of error/sim.
 
 inWei = [1 1];   % relative weight of in-class probabilities
 %   [lowVal, lowProb] = deal(0.2, 0.9); % An example of Degree corrected block model %lowProb = rho
   [lowVal, lowProb] = deal(1,0); % An example of original block model
 
-c_rho = 2;
-rho = c_rho*(log(n))^1.5 / n;   %dc+(log n)^1.5/n: totally fail: with pertb/score, 0.45; wt pertb, 0
+c_rho = 4;   %original pcabm paper: 4
+rho = c_rho*(log(n)) / n;   %dc+(log n)^1.5/n: totally fail: with pertb/score, 0.45; wt pertb, 0
                           %no dc, (log n)^1.5/n: ari = nmi = 1
 p = 2;
 c_gam = 2;
 gamma = c_gam * [1;0];
-r = 0.5;  % correlation between correlated z and c
-epsilon_L = 0.02;     % improvement threshold in likelihood when a new covariate is added
+% r = 0.5;  % correlation between correlated z and c
+epsilon_L = 0.1;     % improvement threshold in likelihood when a new covariate is added
 
-fprintf("r=%2.2f, c_rho = %2.2f, c_gam = %2.2f \n",r,c_rho,c_gam)
+fprintf("c_rho = %2.2f, c_gam = %2.2f, espilon_L  = %2.2f \n",c_rho,c_gam,epsilon_L)
 
 
 
@@ -34,9 +34,10 @@ ARI_overr = zeros(10,5);
 gamhmean_overr = zeros(10,5,2);
 gamhvar_overr = zeros(10,5,2);
 selectpropor_overr = zeros(10,2);
-for r_ind = 1:10
+parpool(10)
+parfor r_ind = 1:10
     r = (r_ind-1)/10;
-experiment_times = 2;
+experiment_times = 100;
 Shat_lik = zeros(experiment_times,p);
 MuI_specresult = zeros(experiment_times, 5);
 ARI_specresult = zeros(experiment_times, 5);
@@ -54,10 +55,10 @@ mo = mo.CAgen_latent;
 cvt = zeros(n,n,p);
 % %%%% an example of correlated covariates 
 %      cvtup = triu( randn(n,n), 1 ) * 0.3;
-     cvtup = triu( poissrnd(0.1, n,n), 1 );
+     cvtup = triu( poissrnd(0.09, n,n), 1 );
      cvt(:,:,1) = cvtup + cvtup';
 %      cvtup = triu( randn(n,n), 1 ) * 0.3;
-     cvtup = triu( poissrnd(0.1, n,n), 1 );
+     cvtup = triu( poissrnd(0.09, n,n), 1 );
      cvt(:,:,2) = cvtup + cvtup' + 0.6 * r / (sqrt(1-r^2)) * ( mo.P(mo.c,mo.c)/mo.rhon - 1.5 ) ;
 
 mo = mo.CAgenData(cvt, gamma);        % generate data (Adj. matrix "As" and the labels "c")
@@ -106,8 +107,11 @@ for m=1:Nrep
     [U,S,V] = svds(subsam_A1 / p, K);
 %     for k = 1:Kmax
         Ahat_d = U(:,1:K) * S(1:K,1:K) * V(:,1:K)';
-        opt_cvsc = struct('verbose',false,'perturb',true,...
-                    'score',false,'divcvt',false,'D12',false);
+        % opt_cvsc = struct('verbose',false,'perturb',true,...
+        %            'score',false,'divcvt',false,'D12',false);
+    %%% use the $A_ij \sqrt{lambda_i lambda_j}$ regularization as in PCABM paper
+       opt_cvsc = struct('verbose',false,'perturb',true,...
+                   'score',false,'divcvt',false,'D12',false,'SC_r',true); 
         edm =  CA_SCWA(Ahat_d, K, zeros(nnz,nnz,1), 0, opt_cvsc);
             Oll = zeros(K);
             Ell = zeros(K);
@@ -120,7 +124,8 @@ for m=1:Nrep
                     end
             end
             EA_hat = Bll(edm,edm) .* expcvt;
-        Ldm_lik(d,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) ));
+            Ldm_lik(d,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - Bll(edm,edm) .* (1-subOmega) )); %%%%snll
+ %       Ldm_lik(d,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) ));
 %         LKm_lik_scaled(d,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - Bll(edm,edm) .* (1-subOmega) ));
 %         LKm_se(d,m) = sum(sum( ( ( A1-Bll(edm,edm) ) .* (1-subOmega) ).^2 ));
    end      %end for d = not_Seled (k = 1:Kmax)
@@ -189,9 +194,11 @@ init_opts = struct('verbose',false,'perturb',true,'D12',false);
     
 end
 
-% fprintf("variables selected times / total realizations") 
+%%%% producing table A.2: proportion of times in which $Z$ or $Z'$ is selected
+fprintf("variables selected times / total realizations") 
 selectpropor_overr(r_ind,:) = sum(logical(Shat_lik),1)/experiment_times;
-% fprintf("average MuI/ARI for adjusting all/oracle(gam~=0)/selected/none/corr'ed Z only")
+%%%% producing figure 6: average ARI for adjusting all/oracle/selected/none/false covariates only
+fprintf("average MuI/ARI for adjusting all/oracle(gam~=0)/selected/none/corr'ed Z only")
 MuI_overr(r_ind,:) = mean(MuI_specresult,1);
 ARI_overr(r_ind,:) = mean(ARI_specresult,1);
 gamhmean_overr(r_ind,:,:) = nanmean(gamh_specresult,1);
@@ -200,8 +207,12 @@ gamhvar_overr(r_ind,:,:) = nanvar(gamh_specresult,1);
  
 end
 
-% selectpropor_overr
-% MuI_overr
-% ARI_overr
-% gamhmean_overr
+%save('select6result.mat','selectpropor_overr','MuI_overr','ARI_overr','gamhmean_overr','gamhvar_overr')
+
+selectpropor_overr
+MuI_overr
+ARI_overr
+%%%% producing table A.1: mean of $gamma$ estimation. 
+%%%% The first column of gamhmean_overr(:,:,1) is $gamma(Z)$; the first column of gamhmean_overr(:,:,2) is $gamma(Z')$; 
+gamhmean_overr
 % gamhvar_overr
