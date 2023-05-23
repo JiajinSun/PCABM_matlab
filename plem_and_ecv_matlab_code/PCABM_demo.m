@@ -66,7 +66,7 @@ for rep = 1:NUM_rep
      T = 20;
 
     % use spectral clustering to initialize labels
-    init_opts = struct('verbose',false,'perturb',false,'D12',false,'SC_r',true);
+    init_opts = struct('verbose',false,'perturb',true,'D12',false,'SC_r',true);
 
     [e, init_dT] = CA_SCWA(mo.As, mo.K, mo.cvt, gammah, init_opts);    
     init_nmi(rep) = compErr(mo.c, e);
