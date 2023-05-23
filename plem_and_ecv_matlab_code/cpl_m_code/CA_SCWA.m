@@ -97,6 +97,7 @@ avgDeg1 = full(mean(sum(A1,2))); % average degree of A1
         e = reshape(repmat(kmIDX,1,1)',n,[]);  %?
         dT = toc;
         
+        %%%%% regularized spectral clustering as A'^R in the PCABM paper
     elseif options.SC_r
         tic
         d_vec = mean(A1);
@@ -104,7 +105,16 @@ avgDeg1 = full(mean(sum(A1,2))); % average degree of A1
         adjvec = 2 * d_all ./ d_vec;
         adjvec(adjvec > 1) = 1;
         adjmat = A1 .* sqrt(adjvec' * adjvec);
-        [U,~] = eigs(adjmat,K,'lm');
+%         [U,~] = eigs(adjmat,K,'lm');
+        fun = @(x) adjmat*x;
+        
+        opts.issym = 1;
+        opts.fail = 'drop';
+        opts.p = 25;
+        if options.verbose
+            opts.disp = 2;
+        end
+        [U, ~] = eigs(fun,n,K,'LM',opts);
         if options.verbose
             kmopts = statset('Display','iter');
         else
@@ -121,7 +131,7 @@ avgDeg1 = full(mean(sum(A1,2))); % average degree of A1
         dT = toc;
 
     else
-        % spectral clusteting with perturbation
+        % spectral clustering with perturbation
         tic
         alpha0 = (options.rhoPert)*avgDeg1;
              
