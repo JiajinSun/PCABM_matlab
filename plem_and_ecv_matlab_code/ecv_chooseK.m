@@ -5,7 +5,7 @@ rng(2000);
 % tic, fprintf('%-40s','Setting up the model ...')
 
 n = 1000;
-K =4;    % number of communities
+K = 4;    % number of communities
 % oir = 1 / (K/2+1);    % "O"ut-"I"n-"R"atio 
 oir = 1 / 2;    % "O"ut-"I"n-"R"atio. oir = 0.5 means $\bar B$ has diagonal = 2, off-diagonal = 1. 
 
@@ -59,14 +59,14 @@ nnz = size(mo.As, 1);
 % pi0 = ones(K,1) / K;
 % [e0,~] = find(mnrnd(1,pi0,nnz)');
 e0 = ones(nnz,1);
-%  gammah = CA_estimgamma(mo.As, 1, e0, mo.cvt);
-gammah = gamma;
+ gammah = CA_estimgamma(mo.As, 1, e0, mo.cvt);
+% gammah = gamma;
 % fprintf('%3.5fs\n',toc)
 
 %%%%%% ecv for selecting K
     expcvt =exp( reshape( (reshape(mo.cvt, nnz*nnz, p) * gammah), nnz, nnz)); %n*n matrix of exp(Zij^T gammah)
     A1 = mo.As ./ expcvt;
-Nrep = 3;
+Nrep = 5; %number of folds
 Kmax = 6;
 LKm_lik = zeros(Kmax,Nrep);
 LKm_lik_scaled = zeros(Kmax,Nrep);
@@ -79,7 +79,13 @@ for m=1:Nrep
     subsam_expcvt = expcvt .* subOmega;
     [U,S,V] = svds(subsam_A1 / p, Kmax);
     for k = 1:Kmax
-        Ahat_k = U(:,1:k) * S(1:k,1:k) * V(:,1:k)';
+        if sum(isnan(diag(S(1:k,1:k)) )) > 0 % this k is wrong
+            EA_hat = mo.As;
+            LKm_lik(k,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) * 10 ));
+            LKm_lik_scaled(k,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - EA_hat ./ expcvt .* (1-subOmega) * 10 ));   % scaled negative log-likelihood loss (snll)
+            LKm_se(k,m) = sum(sum( ( ( A1 ) .* (1-subOmega) ).^2 )) * 10;   % scaled L2 loss
+        else
+        Ahat_k = U(:,1:k) * S(1:k,1:k)  * V(:,1:k)';
        % opt_cvsc = struct('verbose',false,'perturb',true,...
        %             'score',false,'divcvt',false,'D12',false);
     %%% use the $A_ij \sqrt{lambda_i lambda_j}$ regularization as in PCABM paper
@@ -100,7 +106,8 @@ for m=1:Nrep
         LKm_lik(k,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) ));
         LKm_lik_scaled(k,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - Bll(eKm,eKm) .* (1-subOmega) ));   % scaled negative log-likelihood loss (snll)
         LKm_se(k,m) = sum(sum( ( ( A1-Bll(eKm,eKm) ) .* (1-subOmega) ).^2 ));   % scaled L2 loss
-    end
+        end
+     end
 end
 LK_lik = mean(LKm_lik,2)/n;
 LK_lik_scaled = mean(LKm_lik_scaled,2)/n;
@@ -110,6 +117,7 @@ LK_se = mean(LKm_se,2)/n;
 [~,Khat_se(realization)] = min(LK_se);
 end
 
+fprintf("\n Nrep  = %1.1f \n",Nrep)
 %%%% producing Table 2, for a particular $K$. 
 %%%% the 2nd output tabulate is for snll loss and 3rd is for scaled L2 loss.
 %%%% each tabulate shows the frequency of $\hat K$. "value" means the value of $\hat K$.
@@ -126,7 +134,7 @@ tabulate(Khat_se)
 % [e0k,~] = find(mnrnd(1,pi0k,nnz)');
 % gammahk(:,k) = CA_estimgamma(mo.As, k, e0k, mo.cvt);
 % end
-% fprintf('%3.5fs\n',toc)
+% fprintf('%\n 3.5fs\n',toc)
 % err_gamk = sum( (gammahk - repmat(gamma, 1, Kmax)).^2, 1)
 %different k almost does not affect gamma estimation; at least the true K
 %has no advantage against other Ks. Thus, it is reasonable to use the same
