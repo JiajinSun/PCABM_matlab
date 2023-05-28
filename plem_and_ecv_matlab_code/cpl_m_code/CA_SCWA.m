@@ -1,20 +1,33 @@
 function [e, dT] = CA_SCWA(As,K, cvt, gammah, varargin)
-% function [e, dT, A1, expcvt] = CA_SCWA(As,K, cvt, gammah, varargin)
-% Generate initial labeling: spectral clustering with adjustment
-    % spectral clustering on Aij / exp(Zij^T gammahat)
+% function of spectral clustering with adjustment
+% Algorithm 2 in the PCABM paper
+
 % - As:    sparse adjacency matrix %sparse double 
 % - K:     number of communities 
+% - cvt:   pairwise covariates for adjustment
 % - gammah: an estimation of gamma, p-dim col vector
 
+% - e: output class assignment estimate
+
 options = struct('verbose',false,'perturb',false,'rhoPert',0.25, ...
-                 'normU',false, 'score',false,'D12',false,'divcvt',true, ...
+                 'score',false,'D12',false,'divcvt',true, ...
                  'Ufirst',false,'SC_r',false);  %default options
+                 % verbose: outputing detailed records
+                 %**** perturb & SC_r: spectral clustering with
+                 %                     regularization:
+                        %%%%% perturb = false: no regularization;
+                        %%%%% perturb = true, SC_r = false: regularization of the form in Amini et al., 2013;
+                              % rhoPert: size of regularzation in 'perturb'
+                        %%%%% perturb = true, SC_r = true: regularization of the form in the PCABM paper Huang et al., 2023+;
+                 % score: the SCORE algorithm in Jin (2015)  
+                              %%%%% use not divcvt, no D^-1/2 adjacency mat
                  % D12: multiply the adjacency by $D^{-1/2}$ on left and
-                 %      right
-                 % SC_r: regularized spectral clustering (as in PCABM paper)
-                 % perturbation: spectral clustering with perturbation (as
-                 %       in Amini's PLEM paper)
-                 % score: use not divcvt, no D^-1/2 adjacency mat
+                 %      right, to get the Laplacian
+                 % divcvt: divide the exp(Z gamma), i.e., 'with adjustment'
+                 %         in SCWA
+                 % Ufirst: include the first eigenvector for K-means in
+                 %         spectral clustering. if false, use U(:,2:K)
+
 if nargin > 4
     % process options
     optNames = fieldnames(options);  %6*1 cell array

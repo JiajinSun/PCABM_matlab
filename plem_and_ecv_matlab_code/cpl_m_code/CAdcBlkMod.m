@@ -73,6 +73,9 @@ classdef CAdcBlkMod
         
         function ob = CAgen_latent(ob)
             [ob.c,~] = find(mnrnd(1,ob.pri,ob.n)');
+% ob.c= ones(ob.n,1);
+% ob.c(1:ob.n/2) = 2;   %%%% experiment
+
             ob.theta = randsrc(ob.n,1,[ob.thv; ob.thp]);
         end
         
@@ -85,7 +88,8 @@ classdef CAdcBlkMod
             ob.gamma = gamma;
         
 %             ob.As = CAgenCAdcBM0(ob.c, ob.P, ob.theta, ob.cvt, ob.gamma);
-            ob.As = CAgenCAdcBM1(ob.c, ob.P, ob.theta, ob.cvt, ob.gamma);
+             ob.As = CAgenCAdcBM1(ob.c, ob.P, ob.theta, ob.cvt, ob.gamma);
+% ob.As = CAgenCAdcBM_mean(ob.c, ob.P, ob.theta, ob.cvt, ob.gamma); %%% experiment: mean
 
          
         end
@@ -101,6 +105,13 @@ classdef CAdcBlkMod
           
         end
         
+        function ob = perturbData(ob,rho)
+            Bs = genBlkMod(ones(ob.n,1),log(ob.n)/ob.n,log(ob.n)*ob.n); %where is this func?
+            Bs = Bs + Bs';
+
+            avgDeg = full(mean(sum(ob.As,2))); % average degree of As
+            ob.As = ob.As + Bs * rho * avgDeg/log(ob.n);
+        end
         
         
         function ob = removeZeroDeg(ob)

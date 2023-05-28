@@ -195,10 +195,10 @@ init_opts = struct('verbose',false,'perturb',true,'D12',false);
 end
 
 %%%% producing table A.2: proportion of times in which $Z$ or $Z'$ is selected
-fprintf("variables selected times / total realizations") 
+
 selectpropor_overr(r_ind,:) = sum(logical(Shat_lik),1)/experiment_times;
 %%%% producing figure 6: average ARI for adjusting all/oracle/selected/none/false covariates only
-fprintf("average MuI/ARI for adjusting all/oracle(gam~=0)/selected/none/corr'ed Z only")
+
 MuI_overr(r_ind,:) = mean(MuI_specresult,1);
 ARI_overr(r_ind,:) = mean(ARI_specresult,1);
 gamhmean_overr(r_ind,:,:) = nanmean(gamh_specresult,1);
@@ -209,7 +209,9 @@ end
 
 %save('select6result.mat','selectpropor_overr','MuI_overr','ARI_overr','gamhmean_overr','gamhvar_overr')
 
+fprintf("variables selected times / total realizations") 
 selectpropor_overr
+fprintf("average MuI/ARI for adjusting all/oracle(gam~=0)/selected/none/corr'ed Z only")
 MuI_overr
 ARI_overr
 %%%% producing table A.1: mean of $gamma$ estimation. 

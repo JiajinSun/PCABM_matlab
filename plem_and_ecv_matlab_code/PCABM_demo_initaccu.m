@@ -14,34 +14,44 @@ addpath(fullfile('.','cpl_m_code'))
      [lowVal, lowProb] = deal(1,0); % An example of original block model
 
     p = 5;
-    c_rho = 5;
-    c_gam = 1.2;
-    rho = c_rho * log(n) / n;
+%     p = 1;
+    c_rho = 2;
+    c_gam = 1.5;
+    rho = c_rho * (log(n)) / n;
+     init_accu = 0.6;  %%%%% initial accuracy, varies from 0.5 to 1, as in section 7.3 of the PCABM paper
    
-    gamma = (0.4:0.4:2)' * c_gam;
-    
+        gamma = (0.4:0.4:2)' * c_gam;
+%       gamma = 2.5;
     fprintf("n = %1.1f, \n c_rho = %2.2f, c_gam = %2.2f, K  = %1.1f, \n oir = %2.2f",n,c_rho,c_gam,K, oir) 
-    
+
     NUM_rep = 100;
     init_nmi = zeros(NUM_rep,1);
     init_ari = zeros(NUM_rep,1);
+    SCWA_accu = zeros(NUM_rep,1);
     CAplEM_nmi = zeros(NUM_rep,1);
     CAplEM_ari = zeros(NUM_rep,1);
+    CAplEM_accu = zeros(NUM_rep,1);
+    init_gen_accu = zeros(NUM_rep,1);
     gammahat = zeros(NUM_rep,p);
 
 for rep = 1:NUM_rep
     
-    cvt = zeros(n,n,p);
+     cvt = zeros(n,n,p);
     cvtup = triu( binornd(1,0.1, n,n), 1 );
     cvt(:,:,1) = cvtup + cvtup';
-    cvtup = triu( poissrnd(0.1, n,n), 1 );
+%     cvtup = triu( binornd(1,0.1, n,n), 1 );
+     cvtup = triu( poissrnd(0.1, n,n), 1 );
     cvt(:,:,2) = cvtup + cvtup';
     cvtup = triu( rand(n,n), 1 );
     cvt(:,:,3) = cvtup + cvtup';
-    cvtup = triu( exprnd(0.3,n,n), 1 );
+%     cvtup = triu( binornd(1,0.1, n,n), 1 );
+     cvtup = triu( exprnd(0.3,n,n), 1 );
     cvt(:,:,4) = cvtup + cvtup';
     cvtup = triu( randn(n,n), 1 ) * 0.3;
     cvt(:,:,5) = cvtup + cvtup';
+
+% cvtup = triu( poissrnd(0.1, n,n), 1 );
+% cvt(:,:,1) = cvtup + cvtup';
     
 
     mo = CAdcBlkMod(n,K, lowVal, lowProb, rho); % create a base model
@@ -63,6 +73,9 @@ for rep = 1:NUM_rep
 %     fprintf('%3.5fs\n',toc)
     gammahat(rep,:) = gammah;
 
+%     gammah = 3.5;
+
+     T = 20;
 
     %%%% spectral clustering:
         %%%%% perturb = false: no regularization;
@@ -74,62 +87,42 @@ for rep = 1:NUM_rep
 
     [e, init_dT] = CA_SCWA(mo.As, mo.K, mo.cvt, gammah, init_opts);    
 %     fprintf('%3.5fs\n',toc)
-    init_nmi = compErr(mo.c, e);
-    init_ari = compErr2(mo.c, e);
+    init_nmi(rep) = compErr(mo.c, e);
+    init_ari(rep) = compErr2(mo.c, e);
+    SCWA_accu_temp = sum(abs(e-mo.c))/n;
+    SCWA_accu(rep) = max(SCWA_accu_temp, 1-SCWA_accu_temp);
+
+     %%%% certain initial accuracy
+     e = init_e_gen(mo.c,init_accu);
+     init_gen_accu_temp = sum(abs(e-mo.c))/n;
+     init_gen_accu(rep) = max(init_gen_accu_temp, 1- init_gen_accu_temp);
+ %     sum(abs(e-mo.c))
 
 
-    % PLEM for covariate adjusted
-    T = 20;
+    % the function of EM for covariate adjusted
     cpl_opts = struct('verbose',false,'delta_max',0.1, ...
                        'itr_num',T,'em_max',80,'track_err',true);
 %     tic, fprintf('%-40s','Applying CA plEM ...') 
     [CA_chat, CA_err, CA_dT, CA_post] = ...
          CA_plEM(mo.As, mo.K, e, mo.c, mo.cvt, gammah , cpl_opts);
 %     fprintf('%3.5fs\n',toc)
-    CAplEM_nmi = compErr(mo.c, CA_chat);
-    CAplEM_ari = compErr2(mo.c, CA_chat);
+    CAplEM_nmi(rep) = compErr(mo.c, CA_chat);
+    CAplEM_ari(rep) = compErr2(mo.c, CA_chat);
+    CAplEM_accu_temp = sum(abs(CA_chat-mo.c))/n;
+    CAplEM_accu(rep) = max(CAplEM_accu_temp, 1-CAplEM_accu_temp);
 %     fprintf(1,'Init NMI = %3.2f\nCAplEM  NMI = %3.2f\n\n',init_nmi,CAplEM_nmi)
   
 % % compare with no covariate plEM
-%    [nCA_chat,~, ~, ~] = ...
-%         CA_plEM(mo.As, mo.K, e, mo.c, zeros(nnz,nnz,p), zeros(p,1) , cpl_opts);
-%    nCAplEM_nmi = compErr(mo.c, nCA_chat);
-%    nCAplEM_ari = compErr2(mo.c, nCA_chat);
+%     [nCA_chat,~, ~, ~] = ...
+%          CA_plEM(mo.As, mo.K, e, mo.c, zeros(nnz,nnz,p), zeros(p,1) , cpl_opts);
+%     nCAplEM_nmi = compErr(mo.c, nCA_chat);
+%     nCAplEM_ari = compErr2(mo.c, nCA_chat);
 end
 
 result_gamma = [mean(gammahat, 1),var(gammahat, 1)];
-result_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari],1);
-result_std = sqrt([var(init_nmi,1),var(init_ari,1),var(CAplEM_nmi,1),var(CAplEM_ari,1)]);
+result_err = mean([init_gen_accu,SCWA_accu,init_nmi,init_ari,CAplEM_accu,CAplEM_nmi,CAplEM_ari],1);
+result_std = sqrt([var(init_gen_accu,1),var(SCWA_accu,1),var(init_nmi,1),var(init_ari,1),var(CAplEM_accu,1),var(CAplEM_nmi,1),var(CAplEM_ari,1)]);
 result_gamma
 result_err
 result_std
 
-% result500_gamma = mean(gammahat, 1);
-% result500_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari,nCAplEM_nmi,nCAplEM_ari] , 1);
-% result400_gamma = mean(gammahat, 1);
-% result400_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari] , 1);
-% result300_gamma = mean(gammahat, 1);
-% result300_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari] , 1);
-% result200_gamma = mean(gammahat, 1);
-% result200_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari] , 1);
-% result100_gamma = mean(gammahat, 1);
-% result100_err = mean([init_nmi,init_ari,CAplEM_nmi,CAplEM_ari] , 1);
-
-% figure(1), clf, hold on
-% plot(100:100:500,...
-%     [result100_err(2),result200_err(2),result300_err(2),result400_err(2),result500_err(2)],...
-%     'marker','+', 'Color', 'b')
-% plot(100:100:500,...
-%     [result100_err(4),result200_err(4),result300_err(4),result400_err(4),result500_err(4)],...
-%     'marker','o', 'Color', 'r')
-% legend('scwa', 'CAplEM')
-% xlabel('n')
-% ylabel('ARI')
-
-
-%0.6,0.7;0.71,0.77
-
-% poisson: init;nCA;CA : 0.75,0.65; 0.83,0.74; 1,1
-%                        0.85,0.77;,0.86,0.77; 0.99,0.98
-% result500_err =
-%     0.8256    0.8985    1.0000    1.0000    0.7795    0.8609

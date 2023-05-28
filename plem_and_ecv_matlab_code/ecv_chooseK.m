@@ -5,7 +5,7 @@ rng(2000);
 % tic, fprintf('%-40s','Setting up the model ...')
 
 n = 1000;
-K = 4;    % number of communities
+K = 2;    % number of communities
 % oir = 1 / (K/2+1);    % "O"ut-"I"n-"R"atio 
 oir = 1 / 2;    % "O"ut-"I"n-"R"atio. oir = 0.5 means $\bar B$ has diagonal = 2, off-diagonal = 1. 
 
@@ -86,6 +86,7 @@ for m=1:Nrep
             LKm_se(k,m) = sum(sum( ( ( A1 ) .* (1-subOmega) ).^2 )) * 10;   % scaled L2 loss
         else
         Ahat_k = U(:,1:k) * S(1:k,1:k)  * V(:,1:k)';
+        
        % opt_cvsc = struct('verbose',false,'perturb',true,...
        %             'score',false,'divcvt',false,'D12',false);
     %%% use the $A_ij \sqrt{lambda_i lambda_j}$ regularization as in PCABM paper
@@ -102,6 +103,7 @@ for m=1:Nrep
                     Bll(ell1,ell2) = Oll(ell1,ell2) / Ell(ell1,ell2);
                     end
             end
+           
             EA_hat = Bll(eKm,eKm) .* expcvt;
         LKm_lik(k,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) ));
         LKm_lik_scaled(k,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - Bll(eKm,eKm) .* (1-subOmega) ));   % scaled negative log-likelihood loss (snll)
@@ -116,6 +118,10 @@ LK_se = mean(LKm_se,2)/n;
 [~,Khat_lik_scaled(realization)] = max(LK_lik_scaled);
 [~,Khat_se(realization)] = min(LK_se);
 end
+
+LK_lik
+LK_lik_scaled
+LK_se
 
 fprintf("\n Nrep  = %1.1f \n",Nrep)
 %%%% producing Table 2, for a particular $K$. 

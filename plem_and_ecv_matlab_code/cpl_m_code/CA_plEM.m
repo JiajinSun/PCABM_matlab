@@ -1,18 +1,30 @@
 function [chatF,err,dT,Phat] = CA_plEM(As,K,e,c, cvt,gammah, varargin)
 % pseudo likelihood EM algorithm for pairwise covariate adjusted BM
+% Algorithm 1 in the PCABM paper
+
 % As  sparse Adjacency matrix
 % e   the initial labeling, n dim vec
 % c   the true labeling (used only for computing/tracking error across iterations
-% T   number of iterations on top of EM
-
 % cvt  covariate Zij, n*n*p, should be symmetric (Zij = Zji)
 % gammah  an estimate of gamma in exp(Zij^T gamma), p dim vec
 
 % chatF: cluster estimation by the algorithm
 % post: posterior pi_{il}
+% Phat: K*K connection matrix in the pseudo likelihood. Only for records.
 
 options = struct('verbose',false,'verb_level',1,'conv_crit','pl', ...
     'em_max',100,'delta_max',0,'itr_num',20,'track_err',true,'rdm_init_unbalance',true); %default options
+          % verbose: outputing detailed records
+          % verb_level: level of verbose
+          % conv_crit: convergence criterion. default is 'pl', i.e., pseudo
+          %            likelihood
+          % em_max: maximum number of steps in each EM (inner loop of
+          %         the plem algorithm)
+          % delta_max: max error below which EM terminates
+          % itr_num: number of iterations (outer loop of the plem algthm)
+          % track_err: track error (need to know the true labels)
+          % rdm_init_unbalance: use random initialization of class labels if the given initial
+          %                     is very unbalanced
 if nargin > 6
     % process options
     optNames = fieldnames(options);
