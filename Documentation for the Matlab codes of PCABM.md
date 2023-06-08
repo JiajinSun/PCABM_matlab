@@ -38,3 +38,8 @@ The codes for simulations are in the main folder, and are explained as follows:
 
 `pbdata_demo.m`: The code for the analysis of the political blog data in **Section 8.1**. The output gives the number of misclassified nodes, ARI, and NMI for SCWA and PLEM, respectively.
 
+
+
+#### Results
+
+For your reference, we provide example outputs in the folder `code_outputs`. The names of the output files inside should be self-explanatory. The `.out` files could be opened with text edit.
