@@ -1,0 +1,36 @@
+Launching an Matlab run
+Wed May 24 17:15:42 EDT 2023
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2022 The MathWorks, Inc.
+             R2022b Update 4 (9.13.0.2166757) 64-bit (glnxa64)
+                              January 11, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+n = 200.0, 
+ c_rho = 2.00, c_gam = 1.50, K  = 2.0, 
+ oir = 0.50
+result_gamma =
+
+  Columns 1 through 7
+
+    0.5970    1.1986    1.8010    2.3976    3.0024    0.0019    0.0013
+
+  Columns 8 through 10
+
+    0.0027    0.0024    0.0051
+
+
+result_err =
+
+    0.6000    0.8507    0.6028    0.6454    0.9775    0.8894    0.9279
+
+
+result_std =
+
+    0.0000    0.1974    0.3774    0.4051    0.0634    0.1413    0.1380
+
+>> Wed May 24 17:16:27 EDT 2023

@@ -1,0 +1,107 @@
+Launching an Matlab run
+Thu May 25 23:34:11 EDT 2023
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2022 The MathWorks, Inc.
+             R2022b Update 4 (9.13.0.2166757) 64-bit (glnxa64)
+                              January 11, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+c_rho = 4.00, c_gam = 2.00, espilon_L  = 0.10 
+Starting parallel pool (parpool) using the 'Processes' profile ...
+Connected to the parallel pool (number of workers: 10).
+
+ans = 
+
+ ProcessPool with properties: 
+
+            Connected: true
+           NumWorkers: 10
+                 Busy: false
+              Cluster: Processes (Local Cluster)
+        AttachedFiles: {}
+    AutoAddClientPath: true
+            FileStore: [1x1 parallel.FileStore]
+           ValueStore: [1x1 parallel.ValueStore]
+          IdleTimeout: 30 minutes (30 minutes remaining)
+          SpmdEnabled: true
+
+[Warning: The temporary variable 'e_temp' will be cleared at the beginning of
+each iteration of the parfor-loop. If 'e_temp' is used before it is set, a
+runtime error will occur. For more information, see Parallel for Loops in
+MATLAB, "Uninitialized Temporaries".] 
+[> In ecv_variableselect6 (line 38)] 
+variables selected times / total realizations
+selectpropor_overr =
+
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+     1     0
+
+average MuI/ARI for adjusting all/oracle(gam~=0)/selected/none/corr'ed Z only
+MuI_overr =
+
+    0.8077    0.8085    0.8083    0.0021    0.0021
+    0.7962    0.8035    0.8034    0.0022    0.0022
+    0.7684    0.7992    0.7992    0.0020    0.0021
+    0.7377    0.8108    0.8108    0.0024    0.0023
+    0.6681    0.8025    0.8025    0.0020    0.0020
+    0.5675    0.8056    0.8056    0.0021    0.0020
+    0.4245    0.8052    0.8051    0.0020    0.0020
+    0.1681    0.8050    0.8050    0.0022    0.0020
+    0.0042    0.8145    0.8145    0.0024    0.0021
+    0.0012    0.8037    0.8036    0.0024    0.0021
+
+
+ARI_overr =
+
+    0.8818    0.8825    0.8823    0.0000    0.0000
+    0.8737    0.8792    0.8791   -0.0000   -0.0000
+    0.8514    0.8755    0.8755    0.0000    0.0000
+    0.8271    0.8852    0.8852    0.0000    0.0000
+    0.7668    0.8784    0.8784   -0.0001   -0.0000
+    0.6714    0.8802    0.8802   -0.0000   -0.0000
+    0.5214    0.8799    0.8798    0.0000   -0.0000
+    0.2167    0.8805    0.8805    0.0000    0.0000
+    0.0037    0.8868    0.8868   -0.0001   -0.0001
+   -0.0003    0.8789    0.8789   -0.0001   -0.0000
+
+
+gamhmean_overr(:,:,1) =
+
+    2.0009    2.0009    2.0009       NaN       NaN
+    2.0004    2.0003    2.0003       NaN       NaN
+    2.0000    2.0000    2.0000       NaN       NaN
+    2.0022    2.0021    2.0021       NaN       NaN
+    1.9997    1.9991    1.9991       NaN       NaN
+    1.9992    1.9978    1.9978       NaN       NaN
+    1.9995    1.9981    1.9981       NaN       NaN
+    2.0017    2.0002    2.0002       NaN       NaN
+    2.0014    2.0023    2.0023       NaN       NaN
+    2.0012    2.0005    2.0005       NaN       NaN
+
+
+gamhmean_overr(:,:,2) =
+
+    0.0000       NaN       NaN       NaN    0.0001
+    0.1033       NaN       NaN       NaN    0.1030
+    0.1945       NaN       NaN       NaN    0.1957
+    0.2858       NaN       NaN       NaN    0.2850
+    0.3491       NaN       NaN       NaN    0.3455
+    0.4144       NaN       NaN       NaN    0.4077
+    0.4560       NaN       NaN       NaN    0.4526
+    0.4854       NaN       NaN       NaN    0.4831
+    0.4876       NaN       NaN       NaN    0.4882
+    0.4219       NaN       NaN       NaN    0.4202
+
+Thu May 25 23:37:52 EDT 2023

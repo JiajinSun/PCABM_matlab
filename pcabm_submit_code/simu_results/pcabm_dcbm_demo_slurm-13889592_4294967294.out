@@ -1,0 +1,29 @@
+Launching an Matlab run
+Thu May 25 19:30:03 EDT 2023
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2022 The MathWorks, Inc.
+             R2022b Update 4 (9.13.0.2166757) 64-bit (glnxa64)
+                              January 11, 2023
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+n=200, c_rho=3.000000, lowVal=4.000000, lowProb=0.500000
+
+result_gamma =
+
+    1.0044    0.0000
+
+
+result_err =
+
+    0.8607    0.9159    0.9828    0.9910
+
+
+result_std =
+
+    0.0708    0.0499    0.0274    0.0150
+
+>> Thu May 25 19:30:44 EDT 2023
