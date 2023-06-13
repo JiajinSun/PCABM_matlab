@@ -79,7 +79,7 @@ for m=1:Nrep % cross validation; m-th fold
         if sum(isnan(diag(S(1:k,1:k)) )) > 0 % if there is nan in the top 6 eigenvalues, 
                                              %  we think this k is wrong
             EA_hat = mo.As;
-            LKm_lik(k,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) * 10 ));
+            % LKm_lik(k,m) = sum(sum( (mo.As-subsam_As) .* log(EA_hat) - EA_hat .* (1-subOmega) * 10 ));
             LKm_lik_scaled(k,m) = sum(sum( (A1-subsam_A1).* log(EA_hat) - EA_hat ./ expcvt .* (1-subOmega) * 10 ));   % scaled negative log-likelihood loss (snll)
             LKm_se(k,m) = sum(sum( ( ( A1 ) .* (1-subOmega) ).^2 )) * 10;   % scaled L2 loss
         else
